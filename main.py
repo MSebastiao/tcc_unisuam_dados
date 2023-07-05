@@ -4,6 +4,8 @@ import string
 import random
 import re
 import matplotlib.pyplot as plt
+import nltk
+from nltk.corpus import stopwords
 
 def bot_pega_sentenca():
     # inicia a vairavel como uma string vazia
@@ -31,7 +33,7 @@ def bot_pega_sentenca():
         page.wait_for_timeout(1000 +random.randint(0,3000))
         page.locator('//*[@id="ContentPlaceHolder1_btnPesquisar"]').click()
         # um loop para pegar os 10 processos de cada página, no exemplo em questão estamos pegando 5 páginas, totalizando 50 sentenças
-        for y in range(20):
+        for y in range(100):
             for x in range(10):
                 # a variavel texto_sentencas vai concatenando o valor dela mesmo + o texto de cada sentença
                 texto_sentencas += page.inner_text(f'//*[@id="placeholder"]/span/table/tbody/tr[6]/td/table[{x+1}]/tbody/tr[10]/td')
@@ -47,12 +49,19 @@ def bot_pega_sentenca():
     arquivo_txt.write(texto_sentencas)
     arquivo_txt.close()
 
+def copiar_elementos(lista_original, posicoes_desejadas):
+    lista_copiada = []
+    for posicao in posicoes_desejadas:
+        if posicao < len(lista_original):
+            lista_copiada.append(lista_original[posicao])
+    return lista_copiada
 
 def main():
-    #bot_pega_sentenca()
+    bot_pega_sentenca()
     # iniciamos uma lista vazia e uma lista com stop words que iremos remover
-    palavras_sem_lixo = []
-    palavras_lixo = ['33', '1134306', 'a', 'à', 'adeus', 'agora', 'aí', 'ainda', 'além', 'algo', 'alguém', 'algum', 'alguma', 'algumas', 'alguns', 'ali', 'ampla', 'amplas', 'amplo', 'amplos', 'ano', 'anos', 'ante', 'antes', 'ao', 'aos', 'apenas', 'apoio', 'após', 'aquela', 'aquelas', 'aquele', 'aqueles', 'aqui', 'aquilo', 'área', 'as', 'às', 'assim', 'até', 'atrás', 'através', 'baixo', 'bastante', 'bem', 'boa', 'boas', 'bom', 'bons', 'breve', 'cá', 'cada', 'catorze', 'cedo', 'cento', 'certamente', 'certeza', 'cima', 'cinco', 'coisa', 'coisas', 'com', 'como', 'conselho', 'contra', 'contudo', 'custa', 'da', 'dá', 'dão', 'daquela', 'daquelas', 'daquele', 'daqueles', 'dar', 'das', 'de', 'debaixo', 'dela', 'delas', 'dele', 'deles', 'demais', 'dentro', 'depois', 'desde', 'dessa', 'dessas', 'desse', 'desses', 'desta', 'destas', 'deste', 'destes', 'deve', 'devem', 'devendo', 'dever', 'deverá', 'deverão', 'deveria', 'deveriam', 'devia', 'deviam', 'dez', 'dezanove', 'dezasseis', 'dezassete', 'dezoito', 'dia', 'diante', 'disse', 'disso', 'disto', 'dito', 'diz', 'dizem', 'dizer', 'do', 'dois', 'dos', 'doze', 'duas', 'dúvida', 'e', 'é', 'ela', 'elas', 'ele', 'eles', 'decisão','em', 'embora', 'enquanto', 'entre', 'era', 'eram', 'éramos', 'és', 'r', 'essa', 'essas', 'esse', 'esses', 'esta', 'está', 'estamos', 'estão', 'estar', 'estas', 'estás', 'estava', 'estavam', 'estávamos', 'este', 'esteja', 'estejam', 'estejamos', 'estes', 'esteve', 'estive', 'estivemos', 'estiver', 'estivera', 'estiveram', 'estivéramos', 'estiverem', 'estivermos', 'estivesse', 'estivessem', 'estivéssemos', 'estiveste', 'estivestes', 'estou', 'etc', 'eu', 'exemplo', 'faço', 'falta', 'favor', 'faz', 'fazeis', 'fazem', 'fazemos', 'fazendo', 'fazer', 'fazes', 'feita', 'feitas', 'feito', 'feitos', 'fez', 'fim', 'final', 'foi', 'fomos', 'for', 'fora', 'foram', 'fôramos', 'forem', 'forma', 'formos', 'fosse', 'fossem', 'fôssemos', 'foste', 'fostes', 'fui', 'geral', 'grande', 'grandes', 'grupo', 'há', 'haja', 'hajam', 'hajamos', 'hão', 'havemos', 'havia', 'hei', 'hoje', 'hora', 'horas', 'houve', 'houvemos', 'houver', 'houvera', 'houverá', 'houveram', 'houvéramos', 'houverão', 'houverei', 'houverem', 'houveremos', 'houveria', 'houveriam', 'houveríamos', 'houvermos', 'houvesse', 'houvessem', 'houvéssemos', 'isso', 'isto', 'já', 'la', 'lá', 'lado', 'lhe', 'lhes', 'lo', 'local', 'logo', 'longe', 'lugar', 'maior', 'maioria', 'mais', 'mal', 'mas', 'máximo', 'me', 'meio', 'menor', 'menos', 'mês', 'meses', 'mesma', 'mesmas', 'mesmo', 'mesmos', 'meu', 'meus', 'mil', 'minha', 'minhas', 'momento', 'muita', 'muitas', 'muito', 'muitos', 'na', 'nada', 'não', 'naquela', 'naquelas', 'naquele', 'naqueles', 'nas', 'nem', 'nenhum', 'nenhuma', 'nessa', 'nessas', 'nesse', 'nesses', 'nesta', 'nestas', 'neste', 'nestes', 'ninguém', 'nível', 'no', 'noite', 'nome', 'nos', 'nós', 'nossa', 'nossas', 'nosso', 'nossos', 'nova', 'novas', 'nove', 'novo', 'novos', 'num', 'numa', 'número', 'nunca', 'o', 'obra', 'obrigada', 'obrigado', 'oitava', 'oitavo', 'oito', 'onde', 'ontem', 'onze', 'os', 'ou', 'outra', 'outras', 'outro', 'outros', 'para', 'parece', 'parte', 'partir', 'paucas', 'pela', 'pelas', 'pelo', 'pelos', 'pequena', 'pequenas', 'pequeno', 'pequenos', 'per', 'perante', 'perto', 'pode', 'pude', 'pôde', 'podem', 'podendo', 'poder', 'poderia', 'poderiam', 'podia', 'podiam', 'põe', 'põem', 'pois', 'ponto', 'pontos', 'por', 'porém', 'porque', 'porquê', 'posição', 'possível', 'possivelmente', 'posso', 'pouca', 'poucas', 'pouco', 'poucos', 'primeira', 'primeiras', 'primeiro', 'primeiros', 'própria', 'próprias', 'próprio', 'próprios', 'próxima', 'próximas', 'próximo', 'próximos', 'pude', 'puderam', 'quais', 'quáis', 'qual', 'quando', 'quanto', 'quantos', 'quarta', 'quarto', 'quatro', 'que', 'quê', 'quem', 'quer', 'quereis', 'querem', 'queremas', 'queres', 'quero', 'questão', 'quinta', 'quinto', 'quinze', 'relação', 'sabe', 'sabem', 'são', 'se', 'segunda', 'segundo', 'sei', 'seis', 'seja', 'sejam', 'sejamos', 'sem', 'sempre', 'sendo', 'ser', 'será', 'serão', 'serei', 'seremos', 'seria', 'seriam', 'seríamos', 'sete', 'sétima', 'sétimo', 'seu', 'seus', 'sexta', 'sexto', 'si', 'sido', 'sim', 'sistema', 'só', 'sob', 'sobre', 'sois', 'somos', 'sou', 'sua', 'suas', 'tal', 'talvez', 'também', 'tampouco', 'tanta', 'tantas', 'tanto', 'tão', 'tarde', 'te', 'tem', 'tém', 'têm', 'temos', 'tendes', 'tendo', 'tenha', 'tenham', 'tenhamos', 'tenho', 'tens', 'ter', 'terá', 'terão', 'terceira', 'terceiro', 'terei', 'teremos', 'teria', 'teriam', 'teríamos', 'teu', 'teus', 'teve', 'ti', 'tido', 'tinha', 'tinham', 'tínhamos', 'tive', 'tivemos', 'tiver', 'tivera', 'tiveram', 'tivéramos', 'tiverem', 'tivermos', 'tivesse', 'tivessem', 'tivéssemos', 'tiveste', 'tivestes', 'toda', 'todas', 'R$', '1ª','todavia', 'todo', 'todos', 'trabalho', 'três', 'treze', 'tu', 'tua', 'tuas', 'tudo', 'última', 'últimas', 'último', 'últimos', 'um', 'uma', 'umas', 'uns', 'vai', 'vais', 'vão', 'vários', 'vem', 'vêm', 'vendo', 'vens', 'ver', 'vez', 'vezes', 'viagem', 'vindo', 'vinte', 'vir', 'você', 'vocês', 'vos', 'vós', 'vossa', 'vossas', 'vosso', 'vossos', 'zero', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '_', 'nº', '–', 'rio', 'de', 'janeiro', 'ricardo']
+    palavras_sem_lixo_nltk = []
+    palavras_sem_lixo_def = []
+    stopwords_juridico = ['1', 'meses', 'ausência', 'ainda', 'fatos','paciente','denúncia', 'forma', 'nº', 'além', 'assim', 'lei', '¿', 'pena', 'penal', 'crime', 'acusado', 'código', 'recurso', 'autos', 'art', 'artigo', 'réu', '33', '1134306', 'anos', 'prova', 'policiais', 'regime', 'anos', 'prática', 'juízo', 'criminal', 'apelante', 'quanto', 'sendo', 'processo', 'reclusão', 'delito', 'sentença', 'associação', 'autoria', 'apelação', 'razão', 'legal','caso','material','qualquer','crime','crimes','criminosa','circunstâncias','liberdade','local','policial','vítima','mínimo','defensivo','diasmulta']
     
     # abrimos em modo leitura o arquivo que criamos anteriormente
     with open('sentencas.txt', 'r', encoding='UTF-8') as f:
@@ -61,15 +70,25 @@ def main():
     # removemos pontuação, transformamos tudo em minusculo e splitamos o texto
     texto = texto.translate(str.maketrans('', '', string.punctuation))
     texto = texto.lower()
-    palavras = texto.split()
+    lista_palavras = texto.split()
 
-    # vamos adicionando dentro da nossa lista as palavras dentro do arquivo exceto as stop words que definimos
-    for palavra in palavras:
-        if palavra.lower() not in palavras_lixo:
-            palavras_sem_lixo.append(palavra)
+    # dentro de um loop, vamos removendo as stopwords da lingua portuguesa
+    #nltk.download('stopwords')
+    palavra_lixo = stopwords.words('portuguese')
+    # vamos adicionando dentro da nossa lista as palavras dentro do arquivo exceto as stop words da biblioteca nltk
+    for palavra in lista_palavras:
+        if palavra.lower() not in palavra_lixo:
+            palavras_sem_lixo_nltk.append(palavra)
 
-    # adicionamos dentro de uma string todas as palavras que formam um texto sem as stop words e criamos um arquivo
-    texto_sem_lixo = ' '.join(palavras_sem_lixo)
+    # adicionamos dentro de uma string todas as palavras que formam um texto sem as stop words e a partir disso, removemos uma lista de stopwords da área juridica
+    texto_sem_lixo = ' '.join(palavras_sem_lixo_nltk)
+    lista_palavras = texto_sem_lixo.split()
+    for palavra in lista_palavras:
+        if palavra.lower() not in stopwords_juridico:
+            palavras_sem_lixo_def.append(palavra)
+    
+    # adicionamos nosso texto limpo definitivo dentro de um arquivo e salvamos
+    texto_sem_lixo = ' '.join(palavras_sem_lixo_def)
     arquivo_txt = open('sentencas_limpo.txt', 'w', encoding='UTF-8')
     arquivo_txt.write(texto_sem_lixo)
     arquivo_txt.close()
@@ -96,11 +115,12 @@ def main():
 
     top_palavras = palavras_ordenadas[:10]
 
+    # geramos um gráfico com as palavras mais utilizadas
     y_pos = range(len(top_palavras))
-    plt.barh(y_pos, [frequencias[palavra] for palavra in top_palavras])
-    plt.yticks(y_pos, top_palavras)
-    plt.xlabel('Número de ocorrências')
-    plt.title('Palavras mais utilizadas')
+    plt.bar(y_pos, [frequencias[palavra] for palavra in top_palavras])
+    plt.xticks(y_pos, top_palavras)
+    plt.ylabel('Número de ocorrências')
+    plt.title('Palavras mais frequentes')
     plt.show()
 
     arquivo_txt = open('palavras_ordenadas.txt', 'w', encoding='UTF-8')
@@ -131,9 +151,18 @@ def main():
     for x in sentencas_ordenadas:
         sentencas_ordenadas_txt += f'{str(x)} {frequencias[x]}\n'
 
+    indices = [0, 2, 6]
+    top_palavras = copiar_elementos(sentencas_ordenadas, indices)
+
+    y_pos = range(len(top_palavras))
+    plt.bar(y_pos, [frequencias[palavra] for palavra in top_palavras])
+    plt.xticks(y_pos, top_palavras)
+    plt.ylabel('Número de ocorrências')
+    plt.title('Recursos mais frequentes')
+    plt.show()
+
     arquivo_txt = open('sentencas_ordenadas.txt', 'w', encoding='UTF-8')
     arquivo_txt.write(sentencas_ordenadas_txt)
     arquivo_txt.close()
     
-
 main()
